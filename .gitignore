@@ -1,0 +1,30 @@
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+*.user
+*.cache
+*.pdb
+*.ipch
+*.obj
+*.exe
+*.dll
+Debug/
+Release/
+x64/
+x86/
+
+# Blender
+*.blend1
+*.blend2
+*.blend@
+
+# Archivos grandes y temporales
+*.ipdb
+*.ilk
+*.lib
+*.log
+*.exp
+*.pch
+*.idb
