@@ -19,8 +19,8 @@ void main()
 {
     
     vec4 PosL = vec4(aPos, 1.0f);
-    PosL.z += 0.5f * sin(PosL.x + time);
-    PosL.z += 0.5f * cos(PosL.y + time);
+    PosL.z += 1.5f * sin(PosL.x + time); //Se alteró la amplitud en pro del río
+    PosL.z += 1.5f * cos(PosL.y + time);
 
     gl_Position = projection * view * model * PosL;
 

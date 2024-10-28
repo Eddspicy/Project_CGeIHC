@@ -108,6 +108,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\assimp\MSVC2022\include;C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\glad\MSVC2022\include;C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\glfw\MSVC2022\include;C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\glm\include;C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\irrklang\include;C:\Users\eddce\OneDrive\Documents\Documentos Universidad\9_Noveno semestre\CGeIHC\Proyectos\Proyecto_final_ECG\projectScene\deps\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

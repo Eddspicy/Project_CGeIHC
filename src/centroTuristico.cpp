@@ -47,7 +47,7 @@ const unsigned int SCR_WIDTH = 1024;
 const unsigned int SCR_HEIGHT = 768;
 
 // Definición de cámaras distintas (posición en XYZ)
-Camera camera(glm::vec3(0.0f, 2.0f, 10.0f));
+Camera camera(glm::vec3(0.0f, 25.0f, 0.0f));
 Camera camera3rd(glm::vec3(0.0f, 0.0f, 0.0f));
 // selección de cámara
 bool    activeCamera = 1; // activamos la primera cámara
@@ -58,7 +58,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // Variables para la velocidad de reproducción de las animaciones
-float deltaTime = 0.0f;
+float deltaTime = 0.0f; //Camara
 float lastFrame = 0.0f;
 float elapsedTime = 0.0f;
 glm::vec3 position(0.0f,0.0f, 0.0f);
@@ -75,14 +75,18 @@ Shader *proceduralShader;
 Shader* wavesShader;
 Shader *cubemapShader;
 Shader *dynamicShader;
+Shader* staticShader;
 
 // Apuntadores a la información de los modelo en fbx (carga la información del modelo)
 Model	*house;
 Model   *door;
 Model   *moon;
 Model   *gridMesh;
+Model	*terrain;
+Model	*river;
+Model	*lake;
 
-// Apuntadores a la información del modelos animados, ya que requieren una clase distinta (carga la información del modelo)
+// Apuntadores a la información del modelos animados con KeyFrames, ya que requieren una clase distinta (carga la información del modelo)
 AnimatedModel   *character01;
 //Se desconoce para que se usan estas variables
 float tradius = 10.0f;
@@ -100,6 +104,7 @@ Material material01;
 
 float proceduralTime = 0.0f;
 float wavesTime = 0.0f;
+float riverTime = 0.0f;
 
 // Audio
 ISoundEngine *SoundEngine = createIrrKlangDevice();
@@ -165,6 +170,7 @@ bool Start() {
 	wavesShader = new Shader("shaders/13_wavesAnimation.vs", "shaders/13_wavesAnimation.fs");
 	cubemapShader = new Shader("shaders/10_vertex_cubemap.vs", "shaders/10_fragment_cubemap.fs");
 	dynamicShader = new Shader("shaders/10_vertex_skinning-IT.vs", "shaders/10_fragment_skinning-IT.fs");
+	staticShader = new Shader("shaders/10_vertex_simple.vs", "shaders/10_fragment_simple.fs");
 
 	// Máximo número de huesos: 100
 	dynamicShader->setBonesIDs(MAX_RIGGING_BONES);
@@ -178,16 +184,19 @@ bool Start() {
 	moon = new Model("models/IllumModels/moon.fbx");
 	gridMesh = new Model("models/IllumModels/grid.fbx");
 	character01 = new AnimatedModel("models/IllumModels/KAYA.fbx");
+	terrain = new Model("models/terrain.fbx");
+	river = new Model("models/river.fbx");
+	lake = new Model("models/lago.fbx");
 
 	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
 	{
-		"textures/cubemap/01/posx.png",
-		"textures/cubemap/01/negx.png",
-		"textures/cubemap/01/posy.png",
-		"textures/cubemap/01/negy.png",
-		"textures/cubemap/01/posz.png",
-		"textures/cubemap/01/negz.png"
+		"textures/cubemap/04/posx.png",
+		"textures/cubemap/04/negx.png",
+		"textures/cubemap/04/posy.png",
+		"textures/cubemap/04/negy.png",
+		"textures/cubemap/04/posz.png",
+		"textures/cubemap/04/negz.png"
 	};
 	mainCubeMap = new CubeMap();
 	mainCubeMap->loadCubemap(faces);
@@ -343,6 +352,71 @@ bool Update() {
 	}
 	glUseProgram(0); //Reseteo de GL
 
+	//DIBUJADO DEL TERRENO EN LA ESCENA
+	{
+		mLightsShader->use();
+
+		// Activamos para objetos transparentes
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		mLightsShader->setMat4("projection", projection);
+		mLightsShader->setMat4("view", view);
+
+		// Aplicamos transformaciones del modelo
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -160.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		mLightsShader->setMat4("model", model);
+
+		terrain->Draw(*mLightsShader);
+	}
+	glUseProgram(0);
+
+	{
+		//DIBUJADO DEL RIO
+		// Activamos el shader de Phong
+		wavesShader->use();
+
+		// Activamos para objetos transparentes
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		wavesShader->setMat4("projection", projection);
+		wavesShader->setMat4("view", view);
+
+		// Aplicamos transformaciones del modelo
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-95.0f, 0.0f, -160.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));
+		wavesShader->setMat4("model", model);
+
+		wavesShader->setFloat("time", riverTime);
+		wavesShader->setFloat("radius", 5.0f);
+		wavesShader->setFloat("height", 5.0f);
+
+		river->Draw(*wavesShader);
+		
+		//DIBUJADO DEL LAGO
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-50.0f, 0.0f, -160.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));
+		wavesShader->setMat4("model", model);
+
+		lake->Draw(*wavesShader);
+
+		riverTime += 0.02;
+	}
+	glUseProgram(0);
+
 
 	// DIBUJADO DEL MODELO DE LA LUNA
 	{
@@ -389,17 +463,17 @@ bool Update() {
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -10.0f, 225.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+		model = glm::scale(model, glm::vec3(15.0f, 10.0f, 10.0f));
 		wavesShader->setMat4("model", model);
 
 		wavesShader->setFloat("time", wavesTime);
 		wavesShader->setFloat("radius", 5.0f);
 		wavesShader->setFloat("height", 5.0f);
 
-		gridMesh->Draw(*wavesShader);
-		wavesTime += 0.01;
+		//gridMesh->Draw(*wavesShader);
+		wavesTime += 0.0075;
 
 	}
 	glUseProgram(0);
