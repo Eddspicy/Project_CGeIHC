@@ -1,6 +1,5 @@
 /*
-* 
-* 09 - Animación
+* Código del proyecto
 */
 
 #include <iostream>
@@ -18,7 +17,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// Model loading classes
+// Model loading classes (clases creadas por el profesor que proporcionan recursos para camara, dibujado, animacion e iluminacion)
 #include <shader_m.h>
 #include <camera.h>
 #include <model.h>
@@ -30,38 +29,38 @@
 #include <irrKlang.h>
 using namespace irrklang;
 
-// Functions
-bool Start();
-bool Update();
+// Functions 
+bool Start(); //(se declara la función que inicializa las variables, metódos, dependecias, etc)
+bool Update(); //(la función Update es el ciclo de renderizado)
 
-// Definición de callbacks
+// Definición de callbacks (Funciones que procesan la interacción con el puerto de vista, gestión del la ventana y con los periféricos)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
-// Gobals
+// Globals
 GLFWwindow* window;
 
 // Tamaño en pixeles de la ventana
 const unsigned int SCR_WIDTH = 1024;
 const unsigned int SCR_HEIGHT = 768;
 
-// Definición de cámara (posición en XYZ)
+// Definición de cámaras distintas (posición en XYZ)
 Camera camera(glm::vec3(0.0f, 2.0f, 10.0f));
 Camera camera3rd(glm::vec3(0.0f, 0.0f, 0.0f));
+// selección de cámara
+bool    activeCamera = 1; // activamos la primera cámara
 
 // Controladores para el movimiento del mouse
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// Variables para la velocidad de reproducción
-// de la animación
+// Variables para la velocidad de reproducción de las animaciones
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float elapsedTime = 0.0f;
-
 glm::vec3 position(0.0f,0.0f, 0.0f);
 glm::vec3 forwardView(0.0f, 0.0f, 1.0f);
 float     trdpersonOffset = 1.5f;
@@ -73,25 +72,24 @@ float	  door_rotation = 0.0f;
 // Shaders
 Shader *mLightsShader;
 Shader *proceduralShader;
-Shader *wavesShader;
-
+Shader* wavesShader;
 Shader *cubemapShader;
 Shader *dynamicShader;
 
-// Carga la información del modelo
+// Apuntadores a la información de los modelo en fbx (carga la información del modelo)
 Model	*house;
 Model   *door;
 Model   *moon;
 Model   *gridMesh;
 
-// Modelos animados
+// Apuntadores a la información del modelos animados, ya que requieren una clase distinta (carga la información del modelo)
 AnimatedModel   *character01;
-
+//Se desconoce para que se usan estas variables
 float tradius = 10.0f;
 float theta = 0.0f;
 float alpha = 0.0f;
 
-// Cubemap
+// Cubemap (apuntador para cargar un cubeMap y su información, es decir, texturas)
 CubeMap *mainCubeMap;
 
 // Light gLight;
@@ -106,30 +104,30 @@ float wavesTime = 0.0f;
 // Audio
 ISoundEngine *SoundEngine = createIrrKlangDevice();
 
-// selección de cámara
-bool    activeCamera = 1; // activamos la primera cámara
 
 // Entrada a función principal
 int main()
 {
-	if (!Start())
+	if (!Start()) //Si no se puede inicializar la función, se regresa -1
 		return -1;
 
 	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window)) //Ejecuta el ciclo de renderizado hasta que se cierra la ventana
 	{
 		if (!Update())
 			break;
 	}
 
-	glfwTerminate();
+	glfwTerminate(); //Termina dependencias de GLFW al cerrar el programa y regresa 0 en terminal
 	return 0;
 
 }
 
+//FUNCIÓN QUE CARGA, CONFIGURA E INICIALIZA LA ESCENA
 bool Start() {
 	// Inicialización de GLFW
 
+	//Metodos para prepara la ventana (no estoy seguro)
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -174,14 +172,14 @@ bool Start() {
 	// Dibujar en malla de alambre
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
+	//Se dirige los apuntadores a la información de los modelos, mediante la ruta a estos y el constrcutor
 	house = new Model("models/IllumModels/House03.fbx");
 	door = new Model("models/IllumModels/Door.fbx");
 	moon = new Model("models/IllumModels/moon.fbx");
 	gridMesh = new Model("models/IllumModels/grid.fbx");
-
 	character01 = new AnimatedModel("models/IllumModels/KAYA.fbx");
 
-	// Cubemap
+	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
 	{
 		"textures/cubemap/01/posx.png",
@@ -194,13 +192,13 @@ bool Start() {
 	mainCubeMap = new CubeMap();
 	mainCubeMap->loadCubemap(faces);
 
+	//Configuracuón de una de las camaras al inicializar la escena
 	camera3rd.Position = position;
 	camera3rd.Position.y += 1.7f;
 	camera3rd.Position -= trdpersonOffset * forwardView;
 	camera3rd.Front = forwardView;
 
 	// Lights configuration
-	
 	Light light01;
 	light01.Position = glm::vec3(5.0f, 2.0f, 5.0f);
 	light01.Color = glm::vec4(0.2f, 0.0f, 0.0f, 1.0f);
@@ -221,12 +219,13 @@ bool Start() {
 	light04.Color = glm::vec4(0.2f, 0.2f, 0.0f, 1.0f);
 	gLights.push_back(light04);
 	
+	//Configuración del audio global de la escena al inicializarla
 	// SoundEngine->play2D("sound/EternalGarden.mp3", true);
 
 	return true;
 }
 
-
+//¿Funciones que procesan los vectores de iluminación?
 void SetLightUniformInt(Shader* shader, const char* propertyName, size_t lightIndex, int value) {
 	std::ostringstream ss;
 	ss << "allLights[" << lightIndex << "]." << propertyName;
@@ -256,7 +255,7 @@ void SetLightUniformVec3(Shader* shader, const char* propertyName, size_t lightI
 	shader->setVec3(uniformName.c_str(), value);
 }
 
-
+//CICLO DE RENDERIZADO
 bool Update() {
 	// Cálculo del framerate
 	float currentFrame = (float)glfwGetTime();
@@ -273,6 +272,7 @@ bool Update() {
 	glm::mat4 projection;
 	glm::mat4 view;
 
+	//ESTRUCTURA DE CONTROL PARA DECIDIR QUE CAMARA USAR EN LA ESCENA
 	if (activeCamera) {
 		// Cámara en primera persona
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
@@ -284,12 +284,15 @@ bool Update() {
 		view = camera3rd.GetViewMatrix();
 	}
 
-	// Cubemap (fondo)
+	// Cubemap (dibujado del fondo en cada ciclo)
 	{
 		mainCubeMap->drawCubeMap(*cubemapShader, projection, view);
 	}
 	
+	//-------------------------------------------------------------------------------DIBUJADO Y TRANSFORMACIONES DE MODELO--------------------------------------------------------------------------------------------
+	// DIBUJADO DE LA CASA
 	 {
+		
 		mLightsShader->use();
 
 		// Activamos para objetos transparentes
@@ -299,14 +302,14 @@ bool Update() {
 		mLightsShader->setMat4("projection", projection);
 		mLightsShader->setMat4("view", view);
 
-		// Aplicamos transformaciones del modelo
+		// Aplicamos transformaciones al modelo de la casa
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 		mLightsShader->setMat4("model", model);
 
-		// Configuramos propiedades de fuentes de luz
+		// Configuramos propiedades de fuente de luz en la casa
 		mLightsShader->setInt("numLights", (int)gLights.size());
 		for (size_t i = 0; i < gLights.size(); ++i) {
 			SetLightUniformVec3(mLightsShader, "Position", i, gLights[i].Position);
@@ -316,10 +319,9 @@ bool Update() {
 			SetLightUniformInt(mLightsShader, "alphaIndex", i, gLights[i].alphaIndex);
 			SetLightUniformFloat(mLightsShader, "distance", i, gLights[i].distance);
 		}
-		
 		mLightsShader->setVec3("eye", camera.Position);
 
-		// Aplicamos propiedades materiales
+		// Aplicamos propiedades materiales, esto mediante las componentes de iluminación de phong
 		mLightsShader->setVec4("MaterialAmbientColor", material01.ambient);
 		mLightsShader->setVec4("MaterialDiffuseColor", material01.diffuse);
 		mLightsShader->setVec4("MaterialSpecularColor", material01.specular);
@@ -329,7 +331,7 @@ bool Update() {
 
 		 model = glm::mat4(1.0f);
 
-		// Actividad 5.1
+		// DIBUJADO DE LA PUERTA DENTRO DE LA CASA
 		// Efecto de puerta corrediza
 		 model = glm::translate(model, glm::vec3(-0.436358f + door_offset, 0.0f, 6.73517f));
 		
@@ -339,11 +341,10 @@ bool Update() {
 		 mLightsShader->setMat4("model", model);
 		 //door->Draw(*mLightsShader);
 	}
+	glUseProgram(0); //Reseteo de GL
 
-	glUseProgram(0);
 
-
-	// Actividad 5.2
+	// DIBUJADO DEL MODELO DE LA LUNA
 	{
 		// Activamos el shader de Phong
 		proceduralShader->use();
@@ -371,10 +372,9 @@ bool Update() {
 		proceduralTime += 0.01;
 
 	}
-
 	glUseProgram(0);
 
-	// Actividad 5.3
+	// DIBUJADO DEL MODELO DE AGUA
 	{
 		// Activamos el shader de Phong
 		wavesShader->use();
@@ -402,7 +402,6 @@ bool Update() {
 		wavesTime += 0.01;
 
 	}
-
 	glUseProgram(0);
 	
 	// Objeto animado
@@ -431,17 +430,15 @@ bool Update() {
 		character01->Draw(*dynamicShader);
 	}
 	*/
-
 	glUseProgram(0); 
-
 	// glfw: swap buffers 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
 
 	return true;
-}
+} //FIN DEL CICLO DE RENDERIZADO
 
-// Procesamos entradas del teclado
+// PROCESAMIENTO DE ENTRADAS DEL TECLADO
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -482,7 +479,7 @@ void processInput(GLFWwindow* window)
 			door_rotation = door_rotation;
 		}
 
-	// Character movement
+	// MOVIMIENTOS DEL PERSONAJE O ¿DE LA OTRA CAMARA?
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 
 		position = position + scaleV * forwardView;
