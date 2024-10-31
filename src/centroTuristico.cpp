@@ -47,7 +47,7 @@ const unsigned int SCR_WIDTH = 1024;
 const unsigned int SCR_HEIGHT = 768;
 
 // Definición de cámaras distintas (posición en XYZ)
-Camera camera(glm::vec3(0.0f, 25.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 60.0f, 0.0f));
 Camera camera3rd(glm::vec3(0.0f, 0.0f, 0.0f));
 // selección de cámara
 bool    activeCamera = 1; // activamos la primera cámara
@@ -84,7 +84,6 @@ Model   *moon;
 Model   *gridMesh;
 Model	*terrain;
 Model	*river;
-Model	*lake;
 
 // Apuntadores a la información del modelos animados con KeyFrames, ya que requieren una clase distinta (carga la información del modelo)
 AnimatedModel   *character01;
@@ -186,7 +185,6 @@ bool Start() {
 	character01 = new AnimatedModel("models/IllumModels/KAYA.fbx");
 	terrain = new Model("models/terrain.fbx");
 	river = new Model("models/river.fbx");
-	lake = new Model("models/lago.fbx");
 
 	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
@@ -354,31 +352,30 @@ bool Update() {
 
 	//DIBUJADO DEL TERRENO EN LA ESCENA
 	{
-		mLightsShader->use();
+		staticShader->use();
 
 		// Activamos para objetos transparentes
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
-		mLightsShader->setMat4("projection", projection);
-		mLightsShader->setMat4("view", view);
+		staticShader->setMat4("projection", projection);
+		staticShader->setMat4("view", view);
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -160.0f)); // translate it down so it's at the center of the scene
-		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 85.0f)); // translate it down so it's at the center of the scene
+		//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));	// it's a bit too big for our scene, so scale it down
-		mLightsShader->setMat4("model", model);
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		staticShader->setMat4("model", model);
 
-		terrain->Draw(*mLightsShader);
+		terrain->Draw(*staticShader);
 	}
 	glUseProgram(0);
 
 	{
 		//DIBUJADO DEL RIO
-		// Activamos el shader de Phong
 		wavesShader->use();
 
 		// Activamos para objetos transparentes
@@ -391,10 +388,10 @@ bool Update() {
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-95.0f, 0.0f, -160.0f));
-		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 85.0f));
+		//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		wavesShader->setMat4("model", model);
 
 		wavesShader->setFloat("time", riverTime);
@@ -402,18 +399,8 @@ bool Update() {
 		wavesShader->setFloat("height", 5.0f);
 
 		river->Draw(*wavesShader);
-		
-		//DIBUJADO DEL LAGO
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-50.0f, 0.0f, -160.0f));
-		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.68f, 3.36f, 1.0f));
-		wavesShader->setMat4("model", model);
 
-		lake->Draw(*wavesShader);
-
-		riverTime += 0.02;
+		riverTime += 0.01;
 	}
 	glUseProgram(0);
 
