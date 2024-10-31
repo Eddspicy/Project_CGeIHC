@@ -189,12 +189,12 @@ bool Start() {
 	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
 	{
-		"textures/cubemap/04/posx.png",
-		"textures/cubemap/04/negx.png",
-		"textures/cubemap/04/posy.png",
-		"textures/cubemap/04/negy.png",
-		"textures/cubemap/04/posz.png",
-		"textures/cubemap/04/negz.png"
+		"textures/cubemap/02/posx.png",
+		"textures/cubemap/02/negx.png",
+		"textures/cubemap/02/posy.png",
+		"textures/cubemap/02/negy.png",
+		"textures/cubemap/02/posz.png",
+		"textures/cubemap/02/negz.png"
 	};
 	mainCubeMap = new CubeMap();
 	mainCubeMap->loadCubemap(faces);
@@ -364,8 +364,8 @@ bool Update() {
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 85.0f)); // translate it down so it's at the center of the scene
-		//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 		staticShader->setMat4("model", model);
@@ -388,8 +388,8 @@ bool Update() {
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 85.0f));
-		//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		wavesShader->setMat4("model", model);
