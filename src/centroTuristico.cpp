@@ -43,8 +43,8 @@ void processInput(GLFWwindow *window);
 GLFWwindow* window;
 
 // Tamaño en pixeles de la ventana
-const unsigned int SCR_WIDTH = 1024;
-const unsigned int SCR_HEIGHT = 768;
+const unsigned int SCR_WIDTH = 1920;//10124
+const unsigned int SCR_HEIGHT = 1080;//768
 
 // Definición de cámaras distintas (posición en XYZ)
 Camera camera(glm::vec3(0.0f, 60.0f, 0.0f));
@@ -77,6 +77,7 @@ Shader *cubemapShader;
 Shader *dynamicShader;
 Shader* staticShader;
 
+
 // Apuntadores a la información de los modelo en fbx (carga la información del modelo)
 Model	*house;
 Model   *door;
@@ -84,6 +85,7 @@ Model   *moon;
 Model   *gridMesh;
 Model	*terrain;
 Model	*river;
+Model	*sun;
 
 // Apuntadores a la información del modelos animados con KeyFrames, ya que requieren una clase distinta (carga la información del modelo)
 AnimatedModel   *character01;
@@ -100,6 +102,8 @@ std::vector<Light> gLights;
 
 // Materiales
 Material material01;
+Material material;
+Light    light;
 
 float proceduralTime = 0.0f;
 float wavesTime = 0.0f;
@@ -164,7 +168,7 @@ bool Start() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Compilación y enlace de shaders
-	mLightsShader = new Shader("shaders/11_PhongShaderMultLights.vs", "shaders/11_PhongShaderMultLights.fs");
+	mLightsShader = new Shader("shaders/11_BasicPhongShader.vs", "shaders/11_BasicPhongShader.fs");
 	proceduralShader = new Shader("shaders/12_ProceduralAnimation.vs", "shaders/12_ProceduralAnimation.fs");
 	wavesShader = new Shader("shaders/13_wavesAnimation.vs", "shaders/13_wavesAnimation.fs");
 	cubemapShader = new Shader("shaders/10_vertex_cubemap.vs", "shaders/10_fragment_cubemap.fs");
@@ -183,8 +187,9 @@ bool Start() {
 	moon = new Model("models/IllumModels/moon.fbx");
 	gridMesh = new Model("models/IllumModels/grid.fbx");
 	character01 = new AnimatedModel("models/IllumModels/KAYA.fbx");
-	terrain = new Model("models/terrain.fbx");
+	terrain = new Model("models/escena1.fbx");
 	river = new Model("models/river.fbx");
+	sun = new Model("models/sol.fbx");
 
 	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
@@ -205,26 +210,13 @@ bool Start() {
 	camera3rd.Position -= trdpersonOffset * forwardView;
 	camera3rd.Front = forwardView;
 
-	// Lights configuration
-	Light light01;
-	light01.Position = glm::vec3(5.0f, 2.0f, 5.0f);
-	light01.Color = glm::vec4(0.2f, 0.0f, 0.0f, 1.0f);
-	gLights.push_back(light01);
+	// Configuración para la luz direccional (sol)
+	light.Position = glm::vec3(0.0f, 300.0f, 0.0f);
+	light.Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	light.Power = glm::vec4(75.0f, 75.0f, 75.0f, 1.0f);
+	light.alphaIndex = 10;
+	light.distance = 5.0f;                      
 
-	Light light02;
-	light02.Position = glm::vec3(-5.0f, 2.0f, 5.0f);
-	light02.Color = glm::vec4(0.0f, 0.2f, 0.0f, 1.0f);
-	gLights.push_back(light02);
-
-	Light light03;
-	light03.Position = glm::vec3(5.0f, 2.0f, -5.0f);
-	light03.Color = glm::vec4(0.0f, 0.0f, 0.2f, 1.0f);
-	gLights.push_back(light03);
-
-	Light light04;
-	light04.Position = glm::vec3(-5.0f, 2.0f, -5.0f);
-	light04.Color = glm::vec4(0.2f, 0.2f, 0.0f, 1.0f);
-	gLights.push_back(light04);
 	
 	//Configuración del audio global de la escena al inicializarla
 	// SoundEngine->play2D("sound/EternalGarden.mp3", true);
@@ -297,70 +289,18 @@ bool Update() {
 	}
 	
 	//-------------------------------------------------------------------------------DIBUJADO Y TRANSFORMACIONES DE MODELO--------------------------------------------------------------------------------------------
-	// DIBUJADO DE LA CASA
-	 {
-		
-		mLightsShader->use();
-
-		// Activamos para objetos transparentes
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
-		mLightsShader->setMat4("projection", projection);
-		mLightsShader->setMat4("view", view);
-
-		// Aplicamos transformaciones al modelo de la casa
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-		mLightsShader->setMat4("model", model);
-
-		// Configuramos propiedades de fuente de luz en la casa
-		mLightsShader->setInt("numLights", (int)gLights.size());
-		for (size_t i = 0; i < gLights.size(); ++i) {
-			SetLightUniformVec3(mLightsShader, "Position", i, gLights[i].Position);
-			SetLightUniformVec3(mLightsShader, "Direction", i, gLights[i].Direction);
-			SetLightUniformVec4(mLightsShader, "Color", i, gLights[i].Color);
-			SetLightUniformVec4(mLightsShader, "Power", i, gLights[i].Power);
-			SetLightUniformInt(mLightsShader, "alphaIndex", i, gLights[i].alphaIndex);
-			SetLightUniformFloat(mLightsShader, "distance", i, gLights[i].distance);
-		}
-		mLightsShader->setVec3("eye", camera.Position);
-
-		// Aplicamos propiedades materiales, esto mediante las componentes de iluminación de phong
-		mLightsShader->setVec4("MaterialAmbientColor", material01.ambient);
-		mLightsShader->setVec4("MaterialDiffuseColor", material01.diffuse);
-		mLightsShader->setVec4("MaterialSpecularColor", material01.specular);
-		mLightsShader->setFloat("transparency", material01.transparency);
-
-		//house->Draw(*mLightsShader);
-
-		 model = glm::mat4(1.0f);
-
-		// DIBUJADO DE LA PUERTA DENTRO DE LA CASA
-		// Efecto de puerta corrediza
-		 model = glm::translate(model, glm::vec3(-0.436358f + door_offset, 0.0f, 6.73517f));
-		
-		// Efecto de puerta con bisagra
-		 model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		 model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		 mLightsShader->setMat4("model", model);
-		 //door->Draw(*mLightsShader);
-	}
-	glUseProgram(0); //Reseteo de GL
 
 	//DIBUJADO DEL TERRENO EN LA ESCENA
 	{
-		staticShader->use();
+		mLightsShader->use();
 
 		// Activamos para objetos transparentes
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
-		staticShader->setMat4("projection", projection);
-		staticShader->setMat4("view", view);
+		mLightsShader->setMat4("projection", projection);
+		mLightsShader->setMat4("view", view);
 
 		// Aplicamos transformaciones del modelo
 		glm::mat4 model = glm::mat4(1.0f);
@@ -368,9 +308,24 @@ bool Update() {
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-		staticShader->setMat4("model", model);
+		mLightsShader->setMat4("model", model);
 
-		terrain->Draw(*staticShader);
+		// Configuramos propiedades de fuentes de luz
+		mLightsShader->setVec4("LightColor", light.Color);
+		mLightsShader->setVec4("LightPower", light.Power);
+		mLightsShader->setInt("alphaIndex", light.alphaIndex);
+		mLightsShader->setFloat("distance", light.distance);
+		mLightsShader->setVec3("lightPosition", light.Position);
+		mLightsShader->setVec3("lightDirection", light.Direction);
+		mLightsShader->setVec3("eye", camera.Position);
+
+		// Aplicamos propiedades materiales
+		mLightsShader->setVec4("MaterialAmbientColor", material.ambient);
+		mLightsShader->setVec4("MaterialDiffuseColor", material.diffuse);
+		mLightsShader->setVec4("MaterialSpecularColor", material.specular);
+		mLightsShader->setFloat("transparency", material.transparency);
+
+		terrain->Draw(*mLightsShader);
 	}
 	glUseProgram(0);
 
@@ -463,6 +418,24 @@ bool Update() {
 		wavesTime += 0.0075;
 
 	}
+	glUseProgram(0);
+
+	{
+		staticShader->use();
+
+		staticShader->setMat4("projection", projection);
+		staticShader->setMat4("view", view);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, light.Position);
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		staticShader->setMat4("model", model);
+
+		sun->Draw(*staticShader);
+
+	}
+
 	glUseProgram(0);
 	
 	// Objeto animado
