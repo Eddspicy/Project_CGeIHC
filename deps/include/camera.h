@@ -117,6 +117,35 @@ public:
             Zoom = 45.0f;
     }
 
+    void SetAerialView(float height = 100.0f) {
+        // Coloca la cámara en una posición elevada (altura especificada)
+        Position = glm::vec3(Position.x, height, Position.z);
+
+        // Ajusta el ángulo de la cámara para que mire hacia abajo
+        Yaw = -90.0f;      // Mantén el ángulo en el eje Y para orientación
+        Pitch = -90.0f;    // Apunta la cámara directamente hacia abajo
+
+        // Actualiza los vectores de la cámara según los ángulos establecidos
+        updateCameraVectors();
+    }
+
+    void ProcessKeyboardair(Camera_Movement direction, float deltaTime)
+    {
+        float velocity = MovementSpeed * deltaTime;
+        if (direction == FORWARD) {
+            Position.z += velocity;  // Aumenta Z en lugar de cambiar el frente
+        }
+        if (direction == BACKWARD) {
+            Position.z -= velocity;  // Disminuye Z
+        }
+        if (direction == LEFT) {
+            Position.x += velocity;
+        }
+        if (direction == RIGHT) {
+            Position.x -= velocity;
+        }
+    }
+
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()
