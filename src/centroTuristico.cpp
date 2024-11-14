@@ -185,7 +185,7 @@ bool Start() {
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	//Se dirige los apuntadores a la información de los modelos, mediante la ruta a estos y el constrcutor
-	terrain = new Model("models/escena3.fbx");
+	terrain = new Model("models/escenafinal.fbx");
 	river = new Model("models/river.fbx");
 	sun = new Model("models/sol.fbx");
 	cascade = new Model("models/cascade.fbx");
@@ -219,9 +219,9 @@ bool Start() {
 	light.distance = 5.0f;   
 
 	// Configuración de lampara
-	artificial.Position = glm::vec3(0.0f, 3.5f, -90.0f);
-	artificial.Color = glm::vec4(1.35f, 1.1f, 1.0f, 1.0f);
-	artificial.Power = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
+	artificial.Position = glm::vec3(0.0f, 3.5f, -80.0f);
+	artificial.Color = glm::vec4(1.75f, 1.25f, 1.0f, 1.0f);
+	artificial.Power = glm::vec4(12.0f, 12.0f, 12.0f, 1.0f);
 	artificial.alphaIndex = 10;
 	artificial.distance = 3.0f;
 
@@ -453,8 +453,7 @@ bool Update() {
 
 		//DIBUJAJDO DEL INTERIOR ILUMINADO CON ESTA FUENTE
 		model = glm::mat4(1.0f);
-
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -80.0f)); // translate it down so it's at the center of the scene
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
@@ -465,19 +464,19 @@ bool Update() {
 	//DIBUJADO DE PUERTAS ANIMADAS POR ESPECIFICACION DIRECTA
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f + door_rotation)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(174.0f, 0.0f, -90.0f + door_rotation)); // translate it down so it's at the center of the scene
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(1.8f, 1.3f, 1.3f));	// it's a bit too big for our scene, so scale it down
 		mLightsShader->setMat4("model", model);
 
 		puerta1->Draw(*mLightsShader);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-0.3f, 0.0f, -90.0f + door_rotation2)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(173.5f, 0.0f, -90.0f + door_rotation2)); // translate it down so it's at the center of the scene
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(1.8f, 1.3f, 1.3f));	// it's a bit too big for our scene, so scale it down
 		mLightsShader->setMat4("model", model);
 
 		puerta2->Draw(*mLightsShader);
