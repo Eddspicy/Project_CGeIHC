@@ -91,9 +91,14 @@ Model	*lamp;
 Model   *decores;
 Model	*puerta1;
 Model	*puerta2;
+Model	*tazaKF;
 
 // Apuntadores a la información del modelos animados con KeyFrames, ya que requieren una clase distinta (carga la información del modelo)
 AnimatedModel   *character01;
+AnimatedModel	*character02;
+AnimatedModel	*character03;
+AnimatedModel	*character04;
+AnimatedModel	*character05;
 //Se desconoce para que se usan estas variables
 float tradius = 10.0f;
 float theta = 0.0f;
@@ -115,6 +120,30 @@ float riverTime = 0.0f;
 // Audio
 ISoundEngine *SoundEngine = createIrrKlangDevice();
 
+//DATOS DE KEYFRAMES
+int key,action;
+//taza
+float
+movTazaX = 0.0f, incMovTazaX = 0.0f,
+movTazaY = 0.0f, incMovTazaY = 0.0f,
+movTazaZ = 0.0f, incMovTazaZ= 0.0f,
+rotTazaY = 0.0f, incRotTazaY = 0.0f,
+myVariable = 0.0f;
+
+#define MAX_FRAMES 10
+int i_max_steps = 60;
+int i_curr_steps = 0;
+typedef struct _frame
+{
+	//Variables para GUARDAR Key Frames
+	float movTazaX, movTazaY, movTazaZ, rotTazaY;
+
+}FRAME;
+
+FRAME KeyFrame[MAX_FRAMES];
+int FrameIndex = 10;			//introducir número en caso de tener Key guardados
+bool play = false;
+int playIndex = 0;
 
 // Entrada a función principal
 int main()
@@ -189,21 +218,81 @@ bool Start() {
 	river = new Model("models/river.fbx");
 	sun = new Model("models/sol.fbx");
 	cascade = new Model("models/cascade.fbx");
-	character01 = new AnimatedModel("models/empanim.fbx");
 	lamp = new Model("models/lampcolo.fbx");
 	decores = new Model("models/resinilu.fbx");
 	puerta1 = new Model("models/puerta1.fbx");
 	puerta2 = new Model("models/puerta2.fbx");
+	tazaKF = new Model("models/tazaKF.fbx");
+	//Personajes de animaciones
+	character01 = new AnimatedModel("models/empanim.fbx");
+	character02 = new AnimatedModel("models/personSit.fbx");
+	character03 = new AnimatedModel("models/personcCook.fbx");
+	character04 = new AnimatedModel("models/personSup.fbx");
+	character05 = new AnimatedModel("models/personWalking.fbx");
+
+
+	//INICIALIZACION DE KEYFRAMES
+	//Inicialización de KeyFrames, quitar esto y codear los frames para tener una animación guardada con keyFrames.
+	KeyFrame[0].movTazaX = -245;
+	KeyFrame[0].movTazaY= 14;
+	KeyFrame[0].movTazaZ = -91;
+	KeyFrame[0].rotTazaY = 0;
+
+	KeyFrame[1].movTazaX = -241;
+	KeyFrame[1].movTazaY = 14;
+	KeyFrame[1].movTazaZ = -91;
+	KeyFrame[1].rotTazaY = 0;
+
+	KeyFrame[2].movTazaX = -241;
+	KeyFrame[2].movTazaY = 14;
+	KeyFrame[2].movTazaZ = -91;
+	KeyFrame[2].rotTazaY = 0;
+
+	KeyFrame[3].movTazaX = -239;
+	KeyFrame[3].movTazaY = 14;
+	KeyFrame[3].movTazaZ = -91;
+	KeyFrame[3].rotTazaY = 0;
+
+	KeyFrame[4].movTazaX = -239;
+	KeyFrame[4].movTazaY = 14;
+	KeyFrame[4].movTazaZ = -92;
+	KeyFrame[4].rotTazaY = -6;
+
+	KeyFrame[5].movTazaX = -239;
+	KeyFrame[5].movTazaY = 14;
+	KeyFrame[5].movTazaZ = -94;
+	KeyFrame[5].rotTazaY = -15;
+
+	KeyFrame[6].movTazaX = -238;
+	KeyFrame[6].movTazaY = 14;
+	KeyFrame[6].movTazaZ = -95;
+	KeyFrame[6].rotTazaY = -15;
+
+	KeyFrame[7].movTazaX = -238;
+	KeyFrame[7].movTazaY = 14;
+	KeyFrame[7].movTazaZ = -95;
+	KeyFrame[7].rotTazaY = -20;
+
+	KeyFrame[8].movTazaX = -236;
+	KeyFrame[8].movTazaY = 14;
+	KeyFrame[8].movTazaZ = -95;
+	KeyFrame[8].rotTazaY = -45;
+
+	KeyFrame[9].movTazaX = -236;
+	KeyFrame[9].movTazaY = 0;
+	KeyFrame[9].movTazaZ = -93;
+	KeyFrame[9].rotTazaY = -180;
+
 
 	// Cubemap (Se inizializa el cubemap y se pasan las rutas de las texturas del mismo )
 	vector<std::string> faces
 	{
-		"textures/cubemap/02/posx.png",
-		"textures/cubemap/02/negx.png",
-		"textures/cubemap/02/posy.png",
-		"textures/cubemap/02/negy.png",
-		"textures/cubemap/02/posz.png",
-		"textures/cubemap/02/negz.png"
+		"textures/cubemap/01/posx.png",
+		"textures/cubemap/01/negx.png",
+		"textures/cubemap/01/posy.png",
+		"textures/cubemap/01/negy.png",
+		"textures/cubemap/01/posz.png",
+		"textures/cubemap/01/negz.png"
 	};
 	mainCubeMap = new CubeMap();
 	mainCubeMap->loadCubemap(faces);
@@ -226,12 +315,12 @@ bool Start() {
 	artificial.distance = 3.0f;
 
 	//Configuración del audio global de la escena al inicializarla
-	// SoundEngine->play2D("sound/EternalGarden.mp3", true);
+	SoundEngine->play2D("sound/1-02 Main Theme.mp3", true);
 
 	return true;
 }
 
-//¿Funciones que procesan los vectores de iluminación?
+//Funciones que procesan los vectores de iluminación
 void SetLightUniformInt(Shader* shader, const char* propertyName, size_t lightIndex, int value) {
 	std::ostringstream ss;
 	ss << "allLights[" << lightIndex << "]." << propertyName;
@@ -259,6 +348,74 @@ void SetLightUniformVec3(Shader* shader, const char* propertyName, size_t lightI
 	std::string uniformName = ss.str();
 
 	shader->setVec3(uniformName.c_str(), value);
+}
+
+//FUNCIONES DE KEYFRAMES
+void saveFrame(void)
+{
+	printf("frameindex %d\n", FrameIndex);
+	std::cout << "Frame Index = " << FrameIndex << std::endl;
+
+	KeyFrame[FrameIndex].movTazaX = movTazaX;
+	KeyFrame[FrameIndex].movTazaY = movTazaY;
+	KeyFrame[FrameIndex].movTazaZ = movTazaZ;
+	KeyFrame[FrameIndex].rotTazaY = rotTazaY;
+	std::cout << "X: = " << movTazaX << std::endl;
+	std::cout << "Y: = " << movTazaY << std::endl;
+	std::cout << "Z: = " << movTazaZ << std::endl;
+	std::cout << "rY = " << rotTazaY << std::endl;
+
+	FrameIndex++;
+}
+
+void resetElements(void)
+{
+	movTazaX = KeyFrame[0].movTazaX;
+	movTazaY = KeyFrame[0].movTazaY;
+	movTazaZ = KeyFrame[0].movTazaZ;
+	rotTazaY = KeyFrame[0].rotTazaY;
+}
+
+void interpolation(void)
+{
+	incMovTazaX = (KeyFrame[playIndex + 1].movTazaX - KeyFrame[playIndex].movTazaX) / (i_max_steps);
+	incMovTazaY = (KeyFrame[playIndex + 1].movTazaY - KeyFrame[playIndex].movTazaY) / (i_max_steps);
+	incMovTazaZ = (KeyFrame[playIndex + 1].movTazaZ - KeyFrame[playIndex].movTazaZ) / (i_max_steps);
+	incRotTazaY = (KeyFrame[playIndex + 1].rotTazaY - KeyFrame[playIndex].rotTazaY) / (i_max_steps);
+}
+
+void animate(void)
+{
+	if (play)
+	{
+		if (i_curr_steps >= i_max_steps) //end of animation between frames?
+		{
+			playIndex++;
+			if (playIndex > FrameIndex - 2)	//end of total animation?
+			{
+				std::cout << "Animation ended" << std::endl;
+				//printf("termina anim\n");
+				playIndex = 0;
+				play = false;
+			}
+			else //Next frame interpolations
+			{
+				i_curr_steps = 0; //Reset counter
+				//Interpolation
+				interpolation();
+			}
+		}
+		else
+		{
+			//Draw animation
+			movTazaX += incMovTazaX;
+			movTazaY += incMovTazaY;
+			movTazaZ += incMovTazaZ;
+			rotTazaY += incRotTazaY;
+
+			i_curr_steps++;
+		}
+	}
 }
 
 //CICLO DE RENDERIZADO
@@ -293,6 +450,9 @@ bool Update() {
 	{
 		mainCubeMap->drawCubeMap(*cubemapShader, projection, view);
 	}
+
+	//ANIMACIÓN PROGRAMADA POR KEYFRAMES
+	animate();
 	
 	//-------------------------------------------------------------------------------DIBUJADO Y TRANSFORMACIONES DE MODELO--------------------------------------------------------------------------------------------
 
@@ -332,6 +492,19 @@ bool Update() {
 		mLightsShader->setFloat("transparency", material.transparency);
 
 		terrain->Draw(*mLightsShader);
+		
+		//TAZA CON KEYFRAMES
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(movTazaX, movTazaY, movTazaZ)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(rotTazaY), glm::vec3(0.0f, 0.0f, 1.0f));
+		//model = glm::translate(model, glm::vec3(-245.0f, 14.0f, -91.0f)); // se ajusta a donde empieza la animacion
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	// it's a bit too big for our scene, so scale it down
+		mLightsShader->setMat4("model", model);
+
+		tazaKF->Draw(*mLightsShader);
 	}
 	glUseProgram(0);
 
@@ -510,8 +683,110 @@ bool Update() {
 		// Dibujamos el modelo
 		character01->Draw(*dynamicShader);
 	}
-
 	glUseProgram(0); 
+
+	//PERSONA SENTADA
+	{
+		character02->UpdateAnimation(deltaTime);
+
+		// Activación del shader del personaje
+		dynamicShader->use();
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		dynamicShader->setMat4("projection", projection);
+		dynamicShader->setMat4("view", view);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(-110.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 100.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+
+		dynamicShader->setMat4("model", model);
+
+		dynamicShader->setMat4("gBones", MAX_RIGGING_BONES, character02->gBones);
+		character02->Draw(*dynamicShader);
+	}
+	glUseProgram(0);
+
+	//PERSONA COCINA
+	{
+		character03->UpdateAnimation(deltaTime);
+
+		// Activación del shader del personaje
+		dynamicShader->use();
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		dynamicShader->setMat4("projection", projection);
+		dynamicShader->setMat4("view", view);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-226.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 83.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+
+		dynamicShader->setMat4("model", model);
+
+		dynamicShader->setMat4("gBones", MAX_RIGGING_BONES, character03->gBones);
+		character03->Draw(*dynamicShader);
+	}
+	glUseProgram(0);
+
+	//PERSONA SORPRENDIDA
+	///*
+	{
+		character04->UpdateAnimation(deltaTime);
+
+		// Activación del shader del personaje
+		dynamicShader->use();
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		dynamicShader->setMat4("projection", projection);
+		dynamicShader->setMat4("view", view);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(175.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 130.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+
+		dynamicShader->setMat4("model", model);
+
+		dynamicShader->setMat4("gBones", MAX_RIGGING_BONES, character04->gBones);
+		character04->Draw(*dynamicShader);
+	}
+	glUseProgram(0);
+	//*/
+
+	//PERSONA CAMINA
+	{
+		character05->UpdateAnimation(deltaTime);
+
+		// Activación del shader del personaje
+		dynamicShader->use();
+
+		// Aplicamos transformaciones de proyección y cámara (si las hubiera)
+		dynamicShader->setMat4("projection", projection);
+		dynamicShader->setMat4("view", view);
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 38.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -90.0f)); // translate it down so it's at the center of the scene
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+
+		dynamicShader->setMat4("model", model);
+
+		dynamicShader->setMat4("gBones", MAX_RIGGING_BONES, character05->gBones);
+		character05->Draw(*dynamicShader);
+	}
+	glUseProgram(0);
+
 	// glfw: swap buffers 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
@@ -565,7 +840,7 @@ void processInput(GLFWwindow* window)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	//Abrir y cerrar puertas restaurante
-	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		if (door_rotation < 10.0f and door_rotation2 > -10.0f) {
 			door_rotation += 1.f;
 			door_rotation2 -= 1.f;
@@ -574,7 +849,7 @@ void processInput(GLFWwindow* window)
 			door_rotation = door_rotation;
 			door_rotation2 = door_rotation2;
 		}
-	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
 
 		if (door_rotation >= 0.1f and door_rotation2 <= 0.1f) {
 			door_rotation -= 1.f;
@@ -584,6 +859,61 @@ void processInput(GLFWwindow* window)
 			door_rotation = door_rotation;
 			door_rotation2 = door_rotation2;
 		}
+
+	//TECLAS PARA KEYFRAMES
+		//To Configure Model
+	/*
+	* 	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+		movTazaY++;
+	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+		movTazaY--;
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+		movTazaX--;
+	if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+		movTazaX++;
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+		movTazaZ--;
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		movTazaZ++;
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+		rotTazaY += 3.0f;
+	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+		rotTazaY -= 3.0f;
+	*/
+
+
+
+	//To play KeyFrame animation 
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+	{
+		if (play == false && (FrameIndex > 1))
+		{
+			std::cout << "Play animation" << std::endl;
+			resetElements();
+			//First Interpolation				
+			interpolation();
+
+			play = true;
+			playIndex = 0;
+			i_curr_steps = 0;
+		}
+		else
+		{
+			play = false;
+			std::cout << "Not enough Key Frames" << std::endl;
+		}
+	}
+
+	//To Save a KeyFrame
+	/*
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		if (FrameIndex < MAX_FRAMES)
+		{
+			saveFrame();
+		}
+	}
+	*/
 }
 
 // glfw: Actualizamos el puerto de vista si hay cambios del tamaño
